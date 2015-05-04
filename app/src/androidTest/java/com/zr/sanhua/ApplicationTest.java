@@ -1,4 +1,4 @@
-package com.zr.deliver;
+package com.zr.sanhua;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

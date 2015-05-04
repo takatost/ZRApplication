@@ -1,4 +1,4 @@
-package com.zr.deliver;
+package com.zr.sanhua;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -17,7 +17,6 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         myText = (TextView) findViewById(R.id.my_text);
         myText.setText("第一次提交");
-
 
     }
 

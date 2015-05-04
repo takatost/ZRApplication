@@ -18,6 +18,7 @@ public class MainActivity extends ActionBarActivity {
         myText = (TextView) findViewById(R.id.my_text);
         myText.setText("第一次提交");
 
+
     }
 
 

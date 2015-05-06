@@ -29,9 +29,7 @@ public class MapActivity extends Activity implements LocationSource, AMapLocatio
         setContentView(R.layout.map);
         mapView = (MapView) findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
-
         init();
-
 
     }
 

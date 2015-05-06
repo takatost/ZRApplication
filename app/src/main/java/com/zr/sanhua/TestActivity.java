@@ -1,10 +1,9 @@
 package com.zr.sanhua;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,11 +15,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-
-import org.json.JSONObject;
 
 /**
  * 配送端测试功能：
@@ -32,7 +27,7 @@ import org.json.JSONObject;
  * 6，历史订单功能暂定
  */
 
-public class TestActivity extends ActionBarActivity {
+public class TestActivity extends Activity {
 
     private TextView myText;
 
@@ -57,39 +52,38 @@ public class TestActivity extends ActionBarActivity {
         myText.setText("第一次提交");
         myBt = (Button) findViewById(R.id.my_button);
         myImg = (ImageView) findViewById(R.id.my_img);
-
         RequestQueue mQueue = Volley.newRequestQueue(this);
         //字符串请求
-        StringRequest sRe = new StringRequest(
-                jsonUrl,
-                new Response.Listener<String>() {
-
-                    public void onResponse(String arg0) {
-
-                        Log.d("TAG", arg0);
-                    }
-                }, new Response.ErrorListener() {
-
-            public void onErrorResponse(VolleyError arg0) {
-
-            }
-        });
-        mQueue.add(sRe);
+//        StringRequest sRe = new StringRequest(
+//                jsonUrl,
+//                new Response.Listener<String>() {
+//
+//                    public void onResponse(String arg0) {
+//
+//                        Log.d("TAG", arg0);
+//                    }
+//                }, new Response.ErrorListener() {
+//
+//            public void onErrorResponse(VolleyError arg0) {
+//
+//            }
+//        });
+//        mQueue.add(sRe);
         //json数据的请求
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(jsonUrl, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("TAG", response.toString());
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("TAG", error.getMessage(), error);
-            }
-        });
-
-        mQueue.add(jsonObjectRequest);
+//        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(jsonUrl, null,
+//                new Response.Listener<JSONObject>() {
+//                    @Override
+//                    public void onResponse(JSONObject response) {
+//                        Log.d("TAG", response.toString());
+//                    }
+//                }, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                Log.e("TAG", error.getMessage(), error);
+//            }
+//        });
+//
+//        mQueue.add(jsonObjectRequest);
         //volley请求图片
         ImageRequest imRe = new ImageRequest(
                 imgUrl,
@@ -115,6 +109,12 @@ public class TestActivity extends ActionBarActivity {
             case R.id.my_button:
 
                 startActivity(new Intent(TestActivity.this, MapActivity.class));
+
+                break;
+
+            case R.id.my_img:
+
+                startActivity(new Intent(TestActivity.this, RecyclerViewExample.class));
 
                 break;
         }

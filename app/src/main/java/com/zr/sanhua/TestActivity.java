@@ -47,7 +47,7 @@ public class TestActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.test);
         myText = (TextView) findViewById(R.id.my_text);
         myText.setText("第一次提交");
         myBt = (Button) findViewById(R.id.my_button);
@@ -108,13 +108,13 @@ public class TestActivity extends Activity {
 
             case R.id.my_button:
 
-                startActivity(new Intent(TestActivity.this, MapActivity.class));
+                startActivity(new Intent(TestActivity.this, AttendActivity.class));
 
                 break;
 
             case R.id.my_img:
 
-                startActivity(new Intent(TestActivity.this, RecyclerViewExample.class));
+//                startActivity(new Intent(TestActivity.this, RecyclerViewExample.class));
 
                 break;
         }
@@ -125,7 +125,7 @@ public class TestActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -137,9 +137,9 @@ public class TestActivity extends Activity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
 
         return super.onOptionsItemSelected(item);
     }

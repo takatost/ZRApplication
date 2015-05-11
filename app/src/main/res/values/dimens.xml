@@ -2,4 +2,25 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    //登陆界面
+
+    <dimen name="login_edit_height">40dp</dimen>
+
+    <dimen name="login_padding">30dp</dimen>
+    <dimen name="login_edit_vertical_magin">15dp</dimen>
+    <dimen name="login_edit_left_padding">6dp</dimen>
+    <dimen name="login_edit_right_padding">@dimen/login_edit_left_padding</dimen>
+
+    <dimen name="login_edit_size">16dp</dimen>
+    <dimen name="login_bt_size">18dp</dimen>
+    <dimen name="login_bt_height">45dp</dimen>
+
+
+    //签到界面
+
+    <dimen name="attend_bt_height">@dimen/login_edit_height</dimen>
+    <dimen name="attend_bt_magin">15dp</dimen>
+    <dimen name="attend_bt_size">@dimen/login_bt_size</dimen>
+
 </resources>

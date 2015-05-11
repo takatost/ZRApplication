@@ -2,6 +2,7 @@ package com.zr.sanhua;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -9,16 +10,28 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 
 import com.daimajia.swipe.util.Attributes;
 import com.zr.sanhua.adpter.DividerItemDecoration;
+import com.zr.sanhua.adpter.RecyclerViewAdapter;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
-public class RecyclerViewExample extends Activity {
+/**
+ * Created by xia on 2015/5/7.
+ * 1.主页面设计，包含顶部actionbar共包括3个item
+ * 签到/签出
+ * 使用指南
+ * 退出登陆
+ * 搜索功能待定
+ */
+
+public class OrderActivity extends Activity {
 
     /**
      * Substitute for our onScrollListener for RecyclerView
@@ -52,15 +65,15 @@ public class RecyclerViewExample extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.recyclerview);
+        setContentView(R.layout.new_order);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             ActionBar actionBar = getActionBar();
             if (actionBar != null) {
-                actionBar.setTitle("RecyclerView");
+                actionBar.setTitle(getResources().getString(R.string.newest_order));
+                //设置返回键显示
             }
         }
-
         // Layout Managers:
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -82,12 +95,52 @@ public class RecyclerViewExample extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.my, menu);
+        getMenuInflater().inflate(R.menu.menu_order, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.action_attend:
+                startActivity(new Intent(this, AttendActivity.class));
+                break;
+            case R.id.action_see:
+
+                break;
+            case R.id.action_out:
+
+                break;
+            case android.R.id.home:
+                finish();
+                break;
+            default:
+                break;
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        setOverflowIconVisible(featureId, menu);
+        return super.onMenuOpened(featureId, menu);
+    }
+
+
+    private void setOverflowIconVisible(int featureId, Menu menu) {
+        if (featureId == Window.FEATURE_ACTION_BAR && menu != null) {
+            if (menu.getClass().getSimpleName().equals("MenuBuilder")) {
+                try {
+                    Method m = menu.getClass().getDeclaredMethod(
+                            "setOptionalIconsVisible", Boolean.TYPE);
+                    m.setAccessible(true);
+                    m.invoke(menu, true);
+                } catch (Exception e) {
+                    Log.d("OverflowIconVisible", e.getMessage());
+                }
+            }
+        }
     }
 }

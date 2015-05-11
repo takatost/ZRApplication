@@ -1,8 +1,12 @@
 package com.zr.sanhua;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationListener;
@@ -15,7 +19,7 @@ import com.amap.api.maps.MapView;
 /**
  * Created by xia on 2015/5/5.
  */
-public class MapActivity extends Activity implements LocationSource, AMapLocationListener {
+public class AttendActivity extends Activity implements LocationSource, AMapLocationListener {
 
     private AMap aMap;
     private MapView mapView;
@@ -26,11 +30,44 @@ public class MapActivity extends Activity implements LocationSource, AMapLocatio
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.map);
+        setContentView(R.layout.attend);
+
+        configActionbar();
+
         mapView = (MapView) findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         init();
 
+    }
+
+    public void doClick(View v){
+        if(v.getId()==R.id.button){
+
+
+
+
+        }
+    }
+
+    private void configActionbar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            ActionBar actionBar = getActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(getResources().getString(R.string.deliver_sign_in));
+                actionBar.setDisplayHomeAsUpEnabled(true);
+                actionBar.setDisplayShowHomeEnabled(false);
+            }
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void init() {

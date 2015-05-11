@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:padding="@dimen/login_padding"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/about_current_hero"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/login_edit_height"
+        android:layout_below="@+id/imageView"
+        android:drawableRight="@drawable/fork_selector"
+        android:paddingRight="@dimen/login_edit_left_padding"
+        android:inputType="number"
+        android:paddingLeft="@dimen/login_edit_left_padding"
+        android:background="@drawable/login_edit_bg"
+        android:layout_marginTop="@dimen/login_edit_vertical_magin"
+        android:hint="@string/login_name"
+        android:ems="10"
+        android:id="@+id/editText"
+        android:textSize="@dimen/login_edit_size"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/login_edit_height"
+        android:inputType="number"
+        android:hint="@string/login_password"
+        android:background="@drawable/login_edit_bg"
+        android:paddingLeft="@dimen/login_edit_left_padding"
+        android:ems="10"
+        android:id="@+id/editText2"
+        android:textSize="@dimen/login_edit_size"
+        android:layout_below="@+id/editText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/login_edit_vertical_magin" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/login_bt_height"
+        android:id="@+id/button"
+        android:text="@string/login"
+        android:textColor="@color/white"
+        android:onClick="doClick"
+        android:textSize="@dimen/login_bt_size"
+        android:background="@drawable/login_bt_selector"
+        android:layout_marginTop="@dimen/login_edit_vertical_magin"
+        android:layout_below="@+id/editText2"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/notes"
+        android:textColor="@color/dark_gray_press"
+        android:id="@+id/textView"
+        android:layout_below="@+id/button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/login_edit_vertical_magin" />
+
+
+</RelativeLayout>

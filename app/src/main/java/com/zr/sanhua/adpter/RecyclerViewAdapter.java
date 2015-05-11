@@ -1,4 +1,4 @@
-package com.zr.sanhua;
+package com.zr.sanhua.adpter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +15,7 @@ import com.daimajia.androidanimations.library.YoYo;
 import com.daimajia.swipe.SimpleSwipeListener;
 import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.adapters.RecyclerSwipeAdapter;
+import com.zr.sanhua.R;
 
 import java.util.ArrayList;
 
@@ -31,7 +32,7 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
 
     @Override
     public SimpleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.order_item, parent, false);
         return new SimpleViewHolder(view);
     }
 

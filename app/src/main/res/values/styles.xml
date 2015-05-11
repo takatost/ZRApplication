@@ -1,8 +1,40 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:style/Theme.Holo.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+
+    <style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+        //给操作项按钮定义样式资源。
+        <item name="android:actionBarStyle">@style/ActionBar</item>
+        //给每个溢出菜单项的背景定义可描画资源
+        <item name="android:itemBackground">@drawable/actionbar_bg_selector</item>
+        //更换返回键
+        <!--<item name="android:homeAsUpIndicator">@drawable/homasup_selector</item>-->
+        //给actionbar的每个操作项添加背景资源
+        <item name="android:actionBarItemBackground">@drawable/actionbar_bg_selector</item>
+        //给每个item添加文字风格
+        <item name="android:itemTextAppearance">@style/ActionBarOverflow</item>
+        //改变overflow的风格
+        <!--<item name="android:actionOverflowButtonStyle">@style/WeChatActionButtonOverflow</item>-->
     </style>
+
+    <style name="ActionBar" parent="@android:style/Widget.Holo.ActionBar">
+        <item name="android:background">#303537</item>
+        <item name="android:titleTextStyle">@style/ActionBarTitleText</item>
+    </style>
+
+    <style name="ActionBarTitleText" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textColor">#cfcfcf</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+    //设置子菜单的字体颜色和大小
+
+    <style name="ActionBarOverflow" parent="@android:style/Widget.ActionButton.Overflow">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#cfcfcf</item>
+    </style>
+    //设置overflow的风格
+    <!--<style name="WeChatActionButtonOverflow" parent="android:style/Widget.Holo.ActionButton.Overflow">-->
+    <!--<item name="android:src">@drawable/actionbar_more_icon</item>-->
+    <!--</style>-->
 
 </resources>

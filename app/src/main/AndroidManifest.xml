@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.zr.sanhua">
+    package="com.zr.deliver">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -38,11 +38,11 @@
 
         <activity android:name=".OrderDetailActivity" />
 
-        <service android:name="com.zr.sanhua.AlarmPollService" />
+        <service android:name=".AlarmPollService" />
 
         <provider
-            android:name="com.zr.sanhua.OrderProvider"
-            android:authorities="com.zr.sanhua.deliver.order.provider" />
+            android:name=".OrderProvider"
+            android:authorities="com.zr.deliver.order.provider" />
 
         <meta-data
             android:name="com.amap.api.v2.apikey"

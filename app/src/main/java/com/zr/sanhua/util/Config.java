@@ -5,11 +5,27 @@ package com.zr.sanhua.util;
  */
 public class Config {
 
+    /**
+     *配送员登陆模块支持多配送员登陆，但是每次登陆后保存为最新的
+     * 配送员，以配送员id查询配送员最新订单和记录订单
+     */
     public static String DELIVER_DATA = "deliver_data";
 
-    public static String BASE_URL = "http://192.168.1.113:8080/";
+    public static String DELIVER_ID = "deliver_name";
 
-//    public static String BASE_URL = "";
+    public static String DELIVER_PASS = "deliver_password";
+
+    public static String DELIVER_STATUS = "deliver_status";
+    //保存一个默认配置
+    public static int DEFAULT_ID = 10001;
+
+    //进入详情的key
+
+    public static String ORDER_DETAIL_KEY = "order_detail";
+
+    //配送员所有请求链接
+//  public static String BASE_URL = "http://192.168.1.113:8080/";
+    public static String BASE_URL = "http://192.168.1.88:8080/";
 
     public static String DELIVER_LOGIN_URL = BASE_URL
             + "NearbyGo/phone/delivery/login";
@@ -19,7 +35,14 @@ public class Config {
 
     public static String DELIVER_SIGNOUT_URL = BASE_URL
             + "NearbyGo/phone/delivery/signOut";
+    public static String DELIVER_ORDER_URL = BASE_URL
+            + "NearbyGo/phone/delivery/dymanreceive";
 
+    public static String DELIVER_ORDER_FINISH_URL = BASE_URL
+            + "NearbyGo/phone/delivery/dymanfinish";
+
+    //轮询动作
+    public static final String POLLING_ACTION = "com.zr.sanhua.AlarmPollingService";
     /**
      * 登陆相关
      */

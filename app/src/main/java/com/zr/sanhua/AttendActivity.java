@@ -2,11 +2,15 @@ package com.zr.sanhua;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationListener;
@@ -15,6 +19,26 @@ import com.amap.api.location.LocationProviderProxy;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.zr.sanhua.model.DymanRecord;
+import com.zr.sanhua.model.StatefulResponse;
+import com.zr.sanhua.util.Config;
+import com.zr.sanhua.util.GsonTools;
+import com.zr.sanhua.util.PollingUtils;
+import com.zr.sanhua.util.Util;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by xia on 2015/5/5.
@@ -23,31 +47,113 @@ public class AttendActivity extends Activity implements LocationSource, AMapLoca
 
     private AMap aMap;
     private MapView mapView;
+    private Button attendBt;
     private OnLocationChangedListener mListener;
     private LocationManagerProxy mAMapLocationManager;
+    private RequestQueue mQueue;
+    private String currentAddress;
+    private double latitude, longitude;
+    private SharedPreferences mPreferences;
+    private SharedPreferences.Editor editor;
+    int status;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.attend);
-
         configActionbar();
-
+        mQueue = Volley.newRequestQueue(this);
+        mPreferences = this.getSharedPreferences(Config.DELIVER_DATA, MODE_PRIVATE);
+        editor = mPreferences.edit();
         mapView = (MapView) findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         init();
-
+        initAttendBt();
     }
 
-    public void doClick(View v){
-        if(v.getId()==R.id.button){
+    private void initAttendBt() {
+        attendBt = (Button) findViewById(R.id.button);
+        status = mPreferences.getInt(Config.DELIVER_STATUS, -1);
+        if (status == 0)
+            attendBt.setText(getString(R.string.sign_in));
+        else
+            attendBt.setText(getString(R.string.sign_out));
 
+        attendBt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendAttendRequest();
+            }
+        });
+    }
 
+    private void sendAttendRequest() {
 
-
+        DymanRecord dr = new DymanRecord();
+        dr.deliverymanId = mPreferences.getInt(Config.DELIVER_ID, -1);
+        dr.deviceId = Util.getDeviceId(this);
+        dr.latitude = latitude;
+        dr.longitude = longitude;
+        dr.address = currentAddress;
+        Gson gson = GsonTools.getGson();
+        String jsonStr = gson.toJson(dr);
+        JSONObject object = null;
+        try {
+            object = new JSONObject(jsonStr);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+        Log.e("TAG", jsonStr);
+        JsonRequest<JSONObject> jsonRequest = new JsonObjectRequest(Request.Method.POST,
+                status == 0 ? Config.DELIVER_SIGNIN_URL : Config.DELIVER_SIGNOUT_URL, object,
+                new Response.Listener<JSONObject>() {
+                    public void onResponse(JSONObject response) {
+                        Log.d("TAG", "response -> " + response.toString());
+                        StatefulResponse sr = GsonTools.getGson().fromJson(
+                                response.toString(), StatefulResponse.class);
+                        if (sr != null && sr.status == null) {
+                            if (status == 0) {
+                                editor.putInt(Config.DELIVER_STATUS, 1);
+                                editor.commit();
+                                //启动轮询
+                                PollingUtils.startPollingService(
+                                        AttendActivity.this,
+                                        5 * 1000,
+                                        AlarmPollService.class,
+                                        Config.POLLING_ACTION);
+                            } else {
+                                editor.putInt(Config.DELIVER_STATUS, 0);
+                                editor.commit();
+                                PollingUtils.stopPollingService(AttendActivity.this,
+                                        AlarmPollService.class,
+                                        Config.POLLING_ACTION);
+                                //这一步有必要，service只有stop和unbind才能彻底关闭，上面只是关闭alarm服务
+                                stopService(new Intent(AttendActivity.this, AlarmPollService.class));
+                            }
+                            finish();
+                        } else {
+                            //签到签出失败
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("TAG", error.getMessage(), error);
+                //签到签出失败
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Accept", "application/json");
+                headers.put("Content-Type", "application/json; charset=UTF-8");
+                return headers;
+            }
+        };
+        mQueue.add(jsonRequest);
     }
+
 
     private void configActionbar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -109,19 +215,27 @@ public class AttendActivity extends Activity implements LocationSource, AMapLoca
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         mapView.onDestroy();
+        mQueue.stop();
     }
 
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
-
-        if (mListener != null && aMapLocation != null) {
-            if (aMapLocation.getAMapException().getErrorCode() == 0) {
-                mListener.onLocationChanged(aMapLocation);// 显示系统小蓝点
-            }
+        /* 获取经纬度 */
+        latitude = aMapLocation.getLatitude();
+        longitude = aMapLocation.getLongitude();
+        //获取当前地址
+        Bundle locBundle = aMapLocation.getExtras();
+        if (locBundle != null) {
+            currentAddress = locBundle.getString("desc");
         }
-
+        //显示
+        if (mListener != null) {
+            if (0 != aMapLocation.getAMapException().getErrorCode()) {
+                return;
+            }
+            mListener.onLocationChanged(aMapLocation);// 显示系统小蓝点
+        }
     }
 
     @Override

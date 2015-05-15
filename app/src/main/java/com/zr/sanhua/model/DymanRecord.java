@@ -1,75 +1,55 @@
 package com.zr.sanhua.model;
 
-import com.google.gson.annotations.SerializedName;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import java.sql.Timestamp;
+public class DymanRecord implements Parcelable {
 
-public class DymanRecord {
-    @SerializedName("i")
-    Integer id;
-    @SerializedName("d")
-    Integer deliverymanId;
-    @SerializedName("v")
-    String deviceId;
-    @SerializedName("r")
-    Timestamp recordTime;
-    @SerializedName("l")
-    double longitude;
-    @SerializedName("w")
-    double latitude;
-    @SerializedName("a")
-    String address;
-    @SerializedName("s")
-    Integer status;
-
-//	public Integer getId() {
-//		return id;
-//	}
-//	public void setId(Integer id) {
-//		this.id = id;
-//	}
-//	public Integer getDeliverymanId() {
-//		return deliverymanId;
-//	}
-//	public void setDeliverymanId(Integer deliverymanId) {
-//		this.deliverymanId = deliverymanId;
-//	}
-//	public Integer getStatus() {
-//		return status;
-//	}
-//	public void setStatus(Integer status) {
-//		this.status = status;
-//	}
-//	public String getDeviceId() {
-//		return deviceId;
-//	}
-//	public void setDeviceId(String deviceId) {
-//		this.deviceId = deviceId;
-//	}
-//	public Timestamp getRecordTime() {
-//		return recordTime;
-//	}
-//	public void setRecordTime(Timestamp recordTime) {
-//		this.recordTime = recordTime;
-//	}
-//	public double getLongitude() {
-//		return longitude;
-//	}
-//	public void setLongitude(double longitude) {
-//		this.longitude = longitude;
-//	}
-//	public double getLatitude() {
-//		return latitude;
-//	}
-//	public void setLatitude(double latitude) {
-//		this.latitude = latitude;
-//	}
-//	public String getAddress() {
-//		return address;
-//	}
-//	public void setAddress(String address) {
-//		this.address = address;
-//	}
+    public Integer id;
+    public Integer deliverymanId;
+    public String deviceId;
+    public double longitude;
+    public double latitude;
+    public String address;
+    public Integer status;
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(this.id);
+        dest.writeValue(this.deliverymanId);
+        dest.writeString(this.deviceId);
+        dest.writeDouble(this.longitude);
+        dest.writeDouble(this.latitude);
+        dest.writeString(this.address);
+        dest.writeValue(this.status);
+    }
+
+    public DymanRecord() {
+    }
+
+    private DymanRecord(Parcel in) {
+        this.id = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.deliverymanId = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.deviceId = in.readString();
+        this.longitude = in.readDouble();
+        this.latitude = in.readDouble();
+        this.address = in.readString();
+        this.status = (Integer) in.readValue(Integer.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator<DymanRecord> CREATOR = new Parcelable.Creator<DymanRecord>() {
+        public DymanRecord createFromParcel(Parcel source) {
+            return new DymanRecord(source);
+        }
+
+        public DymanRecord[] newArray(int size) {
+            return new DymanRecord[size];
+        }
+    };
 }

@@ -21,7 +21,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppBaseTheme">
-        <activity android:name=".DeliverLoginActivity">
+        <activity android:name=".LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -30,11 +30,19 @@
         </activity>
         <activity android:name=".AttendActivity" />
 
-        <activity android:name=".OrderActivity" />
+        <activity
+            android:name=".OrderActivity"
+            android:launchMode="singleTop" />
 
         <activity android:name=".RecordActivity" />
 
         <activity android:name=".OrderDetailActivity" />
+
+        <service android:name="com.zr.sanhua.AlarmPollService" />
+
+        <provider
+            android:name="com.zr.sanhua.OrderProvider"
+            android:authorities="com.zr.sanhua.deliver.order.provider" />
 
         <meta-data
             android:name="com.amap.api.v2.apikey"

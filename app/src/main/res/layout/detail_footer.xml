@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/order_detail_header_height">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_alignParentTop="true"
+            android:background="@color/grey" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            tools:text="共1件,合计39元"
+            android:textSize="@dimen/order_detail_header_text_size"
+            android:layout_marginRight="@dimen/order_detail_footer_text_magin"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_height="wrap_content" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_alignParentBottom="true"
+            android:background="@color/grey" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/order_detail_header_height">
+
+
+        <Button
+            android:layout_width="@dimen/order_detail_footer_bt_width"
+            android:layout_marginRight="@dimen/order_detail_footer_text_magin"
+            android:id="@+id/call_bt"
+            android:textColor="@color/light_black"
+            tools:text="@string/call"
+            android:onClick="doClick"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/frame_grey_item_selector"
+            android:layout_centerVertical="true"
+            android:layout_height="@dimen/order_detail_footer_bt_height" />
+
+    </RelativeLayout>
+
+
+</LinearLayout>

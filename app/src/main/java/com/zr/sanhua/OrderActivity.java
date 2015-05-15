@@ -2,9 +2,13 @@ package com.zr.sanhua;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.ContentObserver;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -14,11 +18,12 @@ import android.view.Window;
 
 import com.daimajia.swipe.util.Attributes;
 import com.zr.sanhua.adpter.DividerItemDecoration;
-import com.zr.sanhua.adpter.RecyclerViewAdapter;
+import com.zr.sanhua.adpter.OrderAdapter;
+import com.zr.sanhua.model.OrderHistoryDelivery;
+import com.zr.sanhua.util.Config;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
@@ -33,63 +38,104 @@ import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 public class OrderActivity extends Activity {
 
-    /**
-     * Substitute for our onScrollListener for RecyclerView
-     */
-    RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
-        @Override
-        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-            super.onScrollStateChanged(recyclerView, newState);
-            Log.e("ListView", "onScrollStateChanged");
-        }
-
-        @Override
-        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-            super.onScrolled(recyclerView, dx, dy);
-            // Could hide open views here if you wanted. //
-        }
-    };
-    /**
-     * RecyclerView: The new recycler view replaces the list view. Its more modular and therefore we
-     * must implement some of the functionality ourselves and attach it to our recyclerview.
-     * <p/>
-     * 1) Position items on the screen: This is done with LayoutManagers
-     * 2) Animate & Decorate views: This is done with ItemAnimators & ItemDecorators
-     * 3) Handle any touch events apart from scrolling: This is now done in our adapter's ViewHolder
-     */
-
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter mAdapter;
-    private ArrayList<String> mDataSet;
+    private OrderAdapter mAdapter;
+    private OrderObserver orderObserver;
+    private ContentResolver resolver;
+    protected int deliverId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.new_order);
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        setContentView(R.layout.order);
+        resolver = getContentResolver();
+        orderObserver = new OrderObserver(new Handler());
+        getContentResolver().registerContentObserver(
+                OrderProvider.ORDER_URI, false, orderObserver);
+        deliverId = getSharedPreferences(Config.DELIVER_DATA, MODE_PRIVATE).
+                getInt(Config.DELIVER_ID, Config.DEFAULT_ID);
+        configBar();
+        initView();
+
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (orderObserver != null) {
+            getContentResolver().unregisterContentObserver(orderObserver);
+        }
+    }
+
+    private class OrderObserver extends ContentObserver {
+
+        public OrderObserver(Handler handler) {
+            super(handler);
+            // TODO Auto-generated constructor stub
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            // TODO Auto-generated method stub
+            super.onChange(selfChange);
+            Log.e("TAG", "更新订单数据");
+            mAdapter.notifyOrderDataSetChanged(queryOrderData());
+        }
+    }
+
+
+    private void initView() {
+        ArrayList<OrderHistoryDelivery> orderList = queryOrderData();
+        recyclerView = (RecyclerView) findViewById(R.id.order_recycler);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDrawable(R.drawable.divider)));
+        recyclerView.setItemAnimator(new FadeInLeftAnimator());
+        recyclerView.setOnScrollListener(onScrollListener);
+        mAdapter = new OrderAdapter(OrderActivity.this, orderList, true);
+        mAdapter.setMode(Attributes.Mode.Single);
+        recyclerView.setAdapter(mAdapter);
+    }
+
+    private ArrayList<OrderHistoryDelivery> queryOrderData() {
+
+        Cursor c = resolver.query(OrderProvider.ORDER_URI,
+                OrderProvider.ORDER_PROJECTION, "deliver_id=?" + " and " + "order_state=?",
+                new String[]{deliverId + "", 2 + ""}, null);
+        ArrayList<OrderHistoryDelivery> orderList = null;
+        if (c != null && c.getCount() > 0) {
+            orderList = new ArrayList<>();
+            c.moveToFirst();
+            do {
+                OrderHistoryDelivery order = new OrderHistoryDelivery();
+                order.address = c.getString(c
+                        .getColumnIndex(OrderProvider.ADRESS));
+                order.telephone = c.getString(c
+                        .getColumnIndex(OrderProvider.PHONE));
+                order.id = c.getInt(c
+                        .getColumnIndex(OrderProvider.ORDER_ID));
+                order.status = c.getInt(c
+                        .getColumnIndex(OrderProvider.ORDER_STATE));
+                order.acost = c.getFloat(c
+                        .getColumnIndex(OrderProvider.TOTAL_PRICE));
+                order.dycost = c.getFloat(c
+                        .getColumnIndex(OrderProvider.DELIVER_PRICE));
+                order.comment = c.getString(c
+                        .getColumnIndex(OrderProvider.REMARKS));
+                orderList.add(order);
+            } while (c.moveToNext());
+            c.close();
+        }
+        return orderList;
+    }
+
+    private void configBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             ActionBar actionBar = getActionBar();
             if (actionBar != null) {
                 actionBar.setTitle(getResources().getString(R.string.newest_order));
-                //设置返回键显示
             }
         }
-        // Layout Managers:
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // Item Decorator:
-        recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDrawable(R.drawable.divider)));
-        recyclerView.setItemAnimator(new FadeInLeftAnimator());
-
-        // Adapter:
-        String[] adapterData = new String[]{"Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"};
-        mDataSet = new ArrayList<String>(Arrays.asList(adapterData));
-        mAdapter = new RecyclerViewAdapter(this, mDataSet);
-        ((RecyclerViewAdapter) mAdapter).setMode(Attributes.Mode.Single);
-        recyclerView.setAdapter(mAdapter);
-
-        /* Listeners */
-        recyclerView.setOnScrollListener(onScrollListener);
     }
 
     @Override
@@ -107,10 +153,11 @@ public class OrderActivity extends Activity {
                 startActivity(new Intent(this, AttendActivity.class));
                 break;
             case R.id.action_see:
-
+                startActivity(new Intent(this, RecordActivity.class));
                 break;
             case R.id.action_out:
-
+                finish();
+                startActivity(new Intent(this, LoginActivity.class));
                 break;
             case android.R.id.home:
                 finish();
@@ -143,4 +190,21 @@ public class OrderActivity extends Activity {
             }
         }
     }
+
+    /**
+     * Substitute for our onScrollListener for RecyclerView
+     */
+    RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            super.onScrollStateChanged(recyclerView, newState);
+            Log.e("ListView", "onScrollStateChanged");
+        }
+
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+            // Could hide open views here if you wanted. //
+        }
+    };
 }

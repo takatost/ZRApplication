@@ -1,37 +1,44 @@
 package com.zr.sanhua.model;
 
-import com.google.gson.annotations.SerializedName;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import java.io.Serializable;
+public class DeliverymanLogin implements Parcelable {
 
-public class DeliverymanLogin implements Serializable {
 
-    @SerializedName("i")
-    public Integer deleverId;
-    @SerializedName("p")
+    public Integer deliveryId;
     public byte[] pwdAndTime;
-    @SerializedName("d")
     public String deviceId;
 
 
-//	public String getDeviceId() {
-//		return deviceId;
-//	}
-//	public void setDeviceId(String deviceId) {
-//		this.deviceId = deviceId;
-//	}
-//	public Integer getDeleveryId() {
-//		return deleveryId;
-//	}
-//	public void setDeleveryId(Integer deleveryId) {
-//		this.deleveryId = deleveryId;
-//	}
-//	public byte[] getPwdAndTime() {
-//		return pwdAndTime;
-//	}
-//	public void setPwdAndTime(byte[] pwdAndTime) {
-//		this.pwdAndTime = pwdAndTime;
-//	}
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(this.deliveryId);
+        dest.writeByteArray(this.pwdAndTime);
+        dest.writeString(this.deviceId);
+    }
 
+    public DeliverymanLogin() {
+    }
+
+    private DeliverymanLogin(Parcel in) {
+        this.deliveryId = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.pwdAndTime = in.createByteArray();
+        this.deviceId = in.readString();
+    }
+
+    public static final Parcelable.Creator<DeliverymanLogin> CREATOR = new Parcelable.Creator<DeliverymanLogin>() {
+        public DeliverymanLogin createFromParcel(Parcel source) {
+            return new DeliverymanLogin(source);
+        }
+
+        public DeliverymanLogin[] newArray(int size) {
+            return new DeliverymanLogin[size];
+        }
+    };
 }

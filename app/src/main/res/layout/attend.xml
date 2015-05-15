@@ -15,7 +15,6 @@
         android:id="@+id/button"
         android:text="@string/sign_in"
         android:textColor="@color/white"
-        android:onClick="doClick"
         android:layout_margin="@dimen/attend_bt_magin"
         android:textSize="@dimen/attend_bt_size"
         android:layout_alignParentBottom="true"

@@ -27,12 +27,6 @@ import java.util.regex.Pattern;
  */
 public class Util {
 
-
-    /**
-     * 判断手机是否有网络。
-     *
-     * @return 有网络返回true，没有返回false。
-     */
     public static boolean hasNetwork(Context mContext) {
         boolean netStatus = false;
         try {

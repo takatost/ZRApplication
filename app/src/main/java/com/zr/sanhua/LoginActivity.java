@@ -25,6 +25,7 @@ import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.zr.sanhua.misc.RSACoder;
 import com.zr.sanhua.model.DeliverymanLogin;
+import com.zr.sanhua.model.StatefulResponse;
 import com.zr.sanhua.util.Config;
 import com.zr.sanhua.util.GsonTools;
 import com.zr.sanhua.util.Util;
@@ -40,27 +41,30 @@ import java.util.Map;
  * Created by Administrator on 2015/5/6.
  */
 
-public class DeliverLoginActivity extends Activity {
+public class LoginActivity extends Activity {
 
     private RequestQueue mQueue;
     private SharedPreferences mPreferences;
+    private SharedPreferences.Editor editor;
     private EditText nameEdit, passwordEdit;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login);
         mPreferences = this.getSharedPreferences(Config.DELIVER_DATA, MODE_PRIVATE);
+        editor = mPreferences.edit();
         mQueue = Volley.newRequestQueue(this);
-        configActionbar();
+        configBar();
         initView();
-
     }
 
     private void initView() {
         nameEdit = (EditText) findViewById(R.id.editText);
+        nameEdit.setText(mPreferences.getInt(Config.DELIVER_ID, Config.DEFAULT_ID));
         passwordEdit = (EditText) findViewById(R.id.editText2);
+        int password = mPreferences.getInt(Config.DELIVER_PASS, -1);
+        passwordEdit.setText(password == -1 ? "" : password + "");
         nameEdit.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -73,22 +77,18 @@ public class DeliverLoginActivity extends Activity {
                         - drawable.getIntrinsicWidth()) {
                     nameEdit.setText("");
                 }
-
                 return false;
             }
         });
-
-
     }
 
     public void doClick(View v) {
         if (v.getId() == R.id.button) {
             sendLoginRequest();
         }
-
     }
 
-    private void configActionbar() {
+    private void configBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             ActionBar actionBar = getActionBar();
             if (actionBar != null) {
@@ -131,7 +131,7 @@ public class DeliverLoginActivity extends Activity {
         final Integer deliverId = Integer.parseInt(nameStr);
         final Integer password = Integer.parseInt(passwordStr);
         deliverLogin.deviceId = Util.getDeviceId(this);
-        deliverLogin.deleverId = deliverId;
+        deliverLogin.deliveryId = deliverId;
         String time = new Timestamp(System.currentTimeMillis()).toString();
         String pwdAndTime = password + ";" + time;
         byte[] encodedData = null;
@@ -147,6 +147,7 @@ public class DeliverLoginActivity extends Activity {
         JSONObject object = null;
         try {
             object = new JSONObject(jsonStr);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -155,23 +156,36 @@ public class DeliverLoginActivity extends Activity {
                 new Response.Listener<JSONObject>() {
                     public void onResponse(JSONObject response) {
                         Log.d("TAG", "response -> " + response.toString());
+                        StatefulResponse sr = GsonTools.getGson().fromJson(
+                                response.toString(), StatefulResponse.class);
+                        if (sr != null && sr.status == null) {
+                            editor.putInt(Config.DELIVER_ID, deliverId);
+                            editor.putInt(Config.DELIVER_PASS, password);
+                            editor.putInt(Config.DELIVER_STATUS, 0);
+                            editor.commit();
+                            startActivity(new Intent(LoginActivity.this, OrderActivity.class));
+                            finish();
+                        } else {
+                            //这里处理登陆异常
+                        }
+
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("TAG", error.getMessage(), error);
+                Log.e("TAG", "error ->" + error.getMessage(), error);
+                //这里处理登陆异常
             }
         }) {
             @Override
             public Map<String, String> getHeaders() {
-                HashMap<String, String> headers = new HashMap<String, String>();
+                HashMap<String, String> headers = new HashMap<>();
                 headers.put("Accept", "application/json");
                 headers.put("Content-Type", "application/json; charset=UTF-8");
                 return headers;
             }
         };
         mQueue.add(jsonRequest);
-        startActivity(new Intent(this, OrderActivity.class));
     }
 
     @Override

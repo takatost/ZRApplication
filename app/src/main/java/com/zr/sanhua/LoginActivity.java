@@ -61,7 +61,7 @@ public class LoginActivity extends Activity {
 
     private void initView() {
         nameEdit = (EditText) findViewById(R.id.editText);
-        nameEdit.setText(mPreferences.getInt(Config.DELIVER_ID, Config.DEFAULT_ID));
+        nameEdit.setText(mPreferences.getInt(Config.DELIVER_ID, Config.DEFAULT_ID) + "");
         passwordEdit = (EditText) findViewById(R.id.editText2);
         int password = mPreferences.getInt(Config.DELIVER_PASS, -1);
         passwordEdit.setText(password == -1 ? "" : password + "");

@@ -7,16 +7,16 @@
     android:elevation="5dp"
     android:padding="@dimen/order_item_padding">
 
-    <ImageView
+    <com.android.volley.toolbox.NetworkImageView
         android:id="@+id/goods_img"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
-        android:layout_marginRight="@dimen/order_item_padding"
-        android:src="@drawable/ic_launcher" />
+        android:layout_marginRight="@dimen/order_item_padding" />
 
     <TextView
+
         tools:text="红烧肉是一道非常香甜可口的菜，红烧肉是一道非常香甜可口的菜"
         android:id="@+id/goods_des_text"
         android:layout_toRightOf="@+id/goods_img"

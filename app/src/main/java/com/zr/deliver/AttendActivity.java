@@ -63,7 +63,7 @@ public class AttendActivity extends Activity implements LocationSource, AMapLoca
         setContentView(R.layout.attend);
         configActionbar();
         mQueue = Volley.newRequestQueue(this);
-        mPreferences = this.getSharedPreferences(Config.DELIVER_DATA, MODE_PRIVATE);
+        mPreferences = getSharedPreferences(Config.DELIVER_DATA, MODE_PRIVATE);
         editor = mPreferences.edit();
         mapView = (MapView) findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
@@ -74,9 +74,12 @@ public class AttendActivity extends Activity implements LocationSource, AMapLoca
     private void initAttendBt() {
         attendBt = (Button) findViewById(R.id.button);
         status = mPreferences.getInt(Config.DELIVER_STATUS, -1);
+
+        Log.e("TAG", "签到状态=" + status);
+
         if (status == 0)
             attendBt.setText(getString(R.string.sign_in));
-        else
+        else if (status == 1)
             attendBt.setText(getString(R.string.sign_out));
 
         attendBt.setOnClickListener(new View.OnClickListener() {
@@ -118,9 +121,11 @@ public class AttendActivity extends Activity implements LocationSource, AMapLoca
                                 //启动轮询
                                 PollingUtils.startPollingService(
                                         AttendActivity.this,
-                                        5 * 1000,
+                                        15 * 1000,
                                         AlarmPollService.class,
                                         Config.POLLING_ACTION);
+
+                                startService(new Intent(AttendActivity.this, AlarmPollService.class));
                             } else {
                                 editor.putInt(Config.DELIVER_STATUS, 0);
                                 editor.commit();
@@ -236,6 +241,7 @@ public class AttendActivity extends Activity implements LocationSource, AMapLoca
             }
             mListener.onLocationChanged(aMapLocation);// 显示系统小蓝点
         }
+        deactivate();
     }
 
     @Override
@@ -264,10 +270,6 @@ public class AttendActivity extends Activity implements LocationSource, AMapLoca
         mListener = onLocationChangedListener;
         if (mAMapLocationManager == null) {
             mAMapLocationManager = LocationManagerProxy.getInstance(this);
-            //此方法为每隔固定时间会发起一次定位请求，为了减少电量消耗或网络流量消耗，
-            //注意设置合适的定位时间的间隔，并且在合适时间调用removeUpdates()方法来取消定位请求
-            //在定位结束后，在合适的生命周期调用destroy()方法
-            //其中如果间隔时间为-1，则定位只定一次
             mAMapLocationManager.requestLocationData(
                     LocationProviderProxy.AMapNetwork, 60 * 1000, 10, this);
         }

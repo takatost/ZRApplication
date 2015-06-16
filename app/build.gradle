@@ -35,13 +35,7 @@ dependencies {
     //工程library引用
     compile project(':library')
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    //工程libs引用
-    compile files('libs/Volley.jar')
-    compile files('libs/gson-2.2.4.jar')
-    compile files('libs/Android_Location_V1.3.2.jar')
-    compile files('libs/AMap_3DMap_V2.4.1.jar')
-    compile files('libs/AMap_Services_V2.4.0.jar')
-    compile files('libs/library-2.4.0.jar')
+
     //maven公共库引用
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.daimajia.easing:library:1.0.0@aar'

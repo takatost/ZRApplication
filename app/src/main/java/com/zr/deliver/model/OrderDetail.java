@@ -17,6 +17,8 @@ public class OrderDetail implements Parcelable {
 
     public float price;
 
+    public String icon;
+
 
     @Override
     public int describeContents() {
@@ -31,6 +33,7 @@ public class OrderDetail implements Parcelable {
         dest.writeString(this.goodsname);
         dest.writeInt(this.buynum);
         dest.writeFloat(this.price);
+        dest.writeString(this.icon);
     }
 
     public OrderDetail() {
@@ -43,6 +46,7 @@ public class OrderDetail implements Parcelable {
         this.goodsname = in.readString();
         this.buynum = in.readInt();
         this.price = in.readFloat();
+        this.icon = in.readString();
     }
 
     public static final Parcelable.Creator<OrderDetail> CREATOR = new Parcelable.Creator<OrderDetail>() {

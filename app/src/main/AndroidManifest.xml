@@ -32,6 +32,7 @@
 
         <activity
             android:name=".OrderActivity"
+            android:icon="@drawable/new_order"
             android:launchMode="singleTop" />
 
         <activity android:name=".RecordActivity" />

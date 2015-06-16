@@ -4,12 +4,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.location.Location;
 import android.media.AudioManager;
@@ -18,7 +16,6 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -46,6 +43,7 @@ import com.zr.deliver.util.GsonTools;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,23 +54,20 @@ public class AlarmPollService extends Service implements
 
     private RequestQueue mQueue;
     private LocationManagerProxy mAMapLocationManager = null;
-    private DeliveryPolling polling;
     private MediaPlayer mMediaPlayer;
+    private int deliverId;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e("TAG", "onStartCommand");
         activate();
-        sendLocationRequest();
         return START_STICKY;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        polling = new DeliveryPolling();
-        int deliverId = getSharedPreferences(Config.DELIVER_DATA, MODE_PRIVATE).getInt(Config.DELIVER_ID, -1);
-        polling.dymanId = deliverId == -1 ? Config.DEFAULT_ID : deliverId;
+        deliverId = getSharedPreferences(Config.DELIVER_DATA, MODE_PRIVATE).getInt(Config.DELIVER_ID, -1);
         mQueue = Volley.newRequestQueue(this);
         mMediaPlayer = new MediaPlayer();
         Log.e("TAG", "onCreate");
@@ -93,7 +88,12 @@ public class AlarmPollService extends Service implements
         return null;
     }
 
-    private void sendLocationRequest() {
+    private void sendLocationRequest(double latitude, double longitude) {
+
+        final DeliveryPolling polling = new DeliveryPolling();
+        polling.dymanId = deliverId == -1 ? Config.DEFAULT_ID : deliverId;
+        polling.latitude = latitude;
+        polling.longitude = longitude;
         Gson gson = GsonTools.getGson();
         String jsonStr = gson.toJson(polling);
         JSONObject object = null;
@@ -116,50 +116,11 @@ public class AlarmPollService extends Service implements
                         if (sv != null) {
                             ArrayList<OrderHistoryDelivery> orderList = (ArrayList<OrderHistoryDelivery>) sv.value;
                             if (orderList == null || orderList.size() == 0) return;
-                            //先根据得到的订单id匹配数据库订单，如果该订单，update，如果没有insert
-                            boolean isChanged = false;
-                            ContentResolver resolver = getContentResolver();
-                            for (OrderHistoryDelivery order : orderList) {
-                                Cursor c = resolver.query(OrderProvider.ORDER_URI,
-                                        OrderProvider.ORDER_PROJECTION, "order_id=?",
-                                        new String[]{order.id + ""}, null);
-                                if (c == null || c.getCount() == 0) {
-                                    isChanged = true;
-                                    ContentValues orderValues = new ContentValues();
-                                    orderValues.put(OrderProvider.DELIVER_ID, polling.dymanId);
-                                    orderValues.put(OrderProvider.ORDER_ID, order.id);
-                                    orderValues.put(OrderProvider.ORDER_STATE, order.status);
-                                    orderValues.put(OrderProvider.ADRESS, order.address);
-                                    orderValues.put(OrderProvider.PHONE, order.telephone);
-                                    orderValues.put(OrderProvider.TOTAL_PRICE, order.acost);
-                                    orderValues.put(OrderProvider.DELIVER_PRICE, order.dycost);
-                                    orderValues.put(OrderProvider.REMARKS, order.describeContents());
-                                    resolver.insert(OrderProvider.ORDER_URI, orderValues);
-                                    //事务提交good
-                                    if (order.lsc == null) {
-                                        return;
-                                    }
-                                    ArrayList<ContentProviderOperation> ops = new ArrayList<>
-                                            (order.lsc.size());
-                                    for (OrderDetail orderDetail : order.lsc) {
-                                        ContentValues goodValues = new ContentValues();
-                                        goodValues.put(OrderProvider.ORDER_ID, order.id);
-                                        goodValues.put(OrderProvider.GOOD_ID, orderDetail.goodsid);
-                                        goodValues.put(OrderProvider.GOOD_NAME, orderDetail.goodsname);
-                                        goodValues.put(OrderProvider.GOOD_NUM, orderDetail.buynum);
-                                        goodValues.put(OrderProvider.GOOD_PRICE, orderDetail.price);
-                                        ops.add(ContentProviderOperation.newInsert(OrderProvider.GOOD_URI)
-                                                .withValues(goodValues).build());
-                                    }
-                                    try {
-                                        resolver.applyBatch(OrderProvider.AUTHORITY, ops);
-                                    } catch (RemoteException | OperationApplicationException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
+
+                            boolean isChanged = syncOrderData(orderList, polling);
+
                             if (isChanged) {
-                                resolver.notifyChange(OrderProvider.ORDER_URI, null);
+                                getContentResolver().notifyChange(OrderProvider.ORDER_URI, null);
                                 playNoti();
                                 sendOrderNotification();
                             }
@@ -183,11 +144,58 @@ public class AlarmPollService extends Service implements
         mQueue.add(jsonRequest);
     }
 
+    private boolean syncOrderData(ArrayList<OrderHistoryDelivery> orderList, DeliveryPolling polling) {
+
+        boolean isChanged = false;
+        ContentResolver resolver = getContentResolver();
+        Cursor c = null;
+        for (OrderHistoryDelivery order : orderList) {
+            c = resolver.query(OrderProvider.ORDER_URI,
+                    OrderProvider.ORDER_PROJECTION, "order_id=?",
+                    new String[]{order.id + ""}, null);
+            if (c == null || c.getCount() == 0) {
+                isChanged = true;
+                ContentValues orderValues = new ContentValues();
+                orderValues.put(OrderProvider.DELIVER_ID, polling.dymanId);
+                orderValues.put(OrderProvider.ORDER_ID, order.id);
+                orderValues.put(OrderProvider.ORDER_STATE, order.status);
+                orderValues.put(OrderProvider.ADRESS, order.address);
+                orderValues.put(OrderProvider.PHONE, order.telephone);
+                orderValues.put(OrderProvider.TOTAL_PRICE, order.acost);
+                orderValues.put(OrderProvider.DELIVER_PRICE, order.dycost);
+                orderValues.put(OrderProvider.ORDER_TIME, new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(order.ordertime));
+                orderValues.put(OrderProvider.REMARKS, order.describeContents());
+                resolver.insert(OrderProvider.ORDER_URI, orderValues);
+
+                if (order.lsc != null && order.lsc.size() > 0) {
+                    for (OrderDetail orderDetail : order.lsc) {
+                        ContentValues goodsValues = new ContentValues();
+                        goodsValues.put(OrderProvider.ORDER_ID, order.id);
+                        goodsValues.put(OrderProvider.GOOD_ID, orderDetail.goodsid);
+                        goodsValues.put(OrderProvider.GOOD_NAME, orderDetail.goodsname);
+                        goodsValues.put(OrderProvider.GOOD_NUM, orderDetail.buynum);
+                        goodsValues.put(OrderProvider.GOOD_ICON, orderDetail.icon);
+                        goodsValues.put(OrderProvider.GOOD_PRICE, orderDetail.price);
+                        resolver.insert(OrderProvider.GOOD_URI, goodsValues);
+                    }
+                }
+            }
+
+        }
+
+        if (c != null) {
+            c.close();
+        }
+
+        return isChanged;
+
+    }
+
     private void sendOrderNotification() {
         // TODO Auto-generated method stub
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-                this).setSmallIcon(R.drawable.ic_launcher)//设置图标
+                this).setSmallIcon(R.drawable.icon)//设置图标
                 .setContentTitle(getString(R.string.noti_order_hint))//设置标题
                 .setContentText(getString(R.string.noti_opent_hint));//设置内容
         //设置PendingIntent，当用户点击通知跳转到另一个界面，当退出该界面，直接回到HOME*/
@@ -232,9 +240,7 @@ public class AlarmPollService extends Service implements
         if (aMapLocation != null) {
 
             Log.e("TAG", "Latitude=" + aMapLocation.getLatitude() + "...longitude" + aMapLocation.getLongitude());
-
-            polling.latitude = aMapLocation.getLatitude();
-            polling.longitude = aMapLocation.getLongitude();
+            sendLocationRequest(aMapLocation.getLatitude(), aMapLocation.getLongitude());
             //每次定位只需要获取经纬度数据，所以定位完成之后马上销毁，节省资源
             deactivate();
         }
@@ -262,21 +268,13 @@ public class AlarmPollService extends Service implements
 
     //做一次定位
     public void activate() {
-        /**
-         *第一个参数是定位类型，第二个参数是定位出发时间，第三个参数是距离
-         * 注意：后面两个参数并不是说明需要时间和距离来出发一次定位，而是出发
-         * 一次有效定位所需要的条件，如果不满足这两项条件，requestLocationData
-         * 会返回上次定位所取到的数据
-         */
-        /**
-         * 定位和销毁定位是个同步的过程，高德地图真是各种大坑，轮询上报位置需要修改它很多代码
-         */
+
         if (mAMapLocationManager == null) {
             mAMapLocationManager = LocationManagerProxy.getInstance(this);
             Log.e("TAG", "执行定位");
         }
         mAMapLocationManager.requestLocationData(
-                LocationProviderProxy.AMapNetwork, 2000, 10, this);
+                LocationProviderProxy.AMapNetwork, 60 * 1000, 10, this);
     }
 
     //销毁定位

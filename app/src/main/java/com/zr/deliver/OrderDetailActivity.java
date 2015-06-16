@@ -2,11 +2,15 @@ package com.zr.deliver;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.util.LruCache;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,11 +19,15 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.NetworkImageView;
+import com.android.volley.toolbox.Volley;
 import com.zr.deliver.model.OrderDetail;
 import com.zr.deliver.model.OrderHistoryDelivery;
 import com.zr.deliver.util.Config;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by xia on 2015/5/7.
@@ -30,6 +38,7 @@ public class OrderDetailActivity extends Activity {
     private ListView goodListView;
     private LayoutInflater inflater;
     private OrderHistoryDelivery order;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +76,16 @@ public class OrderDetailActivity extends Activity {
         goodListView = (ListView) findViewById(R.id.good_listview);
         View headView = inflater.inflate(R.layout.detail_header, null);
         View footerView = inflater.inflate(R.layout.detail_footer, null);
-        GoodAdapter adapter = new GoodAdapter(goodList);
+        TextView totalText = (TextView) footerView.findViewById(R.id.total_text);
+
+        StringBuffer buffer = new StringBuffer();
+        String totalPrice = getTotalPrice(goodList);
+        String totalNum = getTotalNum(goodList);
+        buffer.append("共").append(totalNum).append("件").append(",合计").append("￥").append(totalPrice);
+        totalText.setText(buffer.toString());
+
+
+        GoodAdapter adapter = new GoodAdapter(this, goodList);
         goodListView.addHeaderView(headView);
         goodListView.addFooterView(footerView);
         goodListView.setAdapter(adapter);
@@ -92,6 +110,8 @@ public class OrderDetailActivity extends Activity {
 
 
     private ArrayList<OrderDetail> queryGoodData() {
+
+        Log.e("TAG", "当前订单id=" + order.id);
         Cursor c = getContentResolver().query(OrderProvider.GOOD_URI,
                 OrderProvider.GOOD_PROJECTION, "order_id=?",
                 new String[]{order.id + ""}, null);
@@ -100,20 +120,54 @@ public class OrderDetailActivity extends Activity {
             goodList = new ArrayList<>();
             c.moveToFirst();
             do {
-                OrderDetail order = new OrderDetail();
-                order.goodsid = c.getInt(c
+                OrderDetail goods = new OrderDetail();
+                goods.goodsid = c.getInt(c
                         .getColumnIndex(OrderProvider.GOOD_ID));
-                order.price = c.getFloat(c
+                goods.price = c.getFloat(c
                         .getColumnIndex(OrderProvider.GOOD_PRICE));
-                order.buynum = c.getInt(c
+                goods.buynum = c.getInt(c
                         .getColumnIndex(OrderProvider.GOOD_NUM));
-                order.goodsname = c.getString(c
+                goods.icon = c.getString(c
+                        .getColumnIndex(OrderProvider.GOOD_ICON));
+
+                Log.e("TAG", "图片地址" + goods.icon);
+
+                goods.goodsname = c.getString(c
                         .getColumnIndex(OrderProvider.GOOD_NAME));
-                goodList.add(order);
+                goodList.add(goods);
             } while (c.moveToNext());
             c.close();
         }
         return goodList;
+
+    }
+
+
+    private String getTotalPrice(List<OrderDetail> lsc) {
+        // TODO Auto-generated method stub
+        if (lsc == null || lsc.size() == 0) {
+            return 0 + "";
+        } else {
+            float totalprice = 0;
+            for (OrderDetail order : lsc) {
+                totalprice += order.price * order.buynum;
+            }
+            return totalprice + "";
+        }
+
+    }
+
+    private String getTotalNum(List<OrderDetail> lsc) {
+        // TODO Auto-generated method stub
+        if (lsc == null || lsc.size() == 0) {
+            return 0 + "";
+        } else {
+            int totalNum = 0;
+            for (OrderDetail order : lsc) {
+                totalNum += order.buynum;
+            }
+            return totalNum + "";
+        }
 
     }
 
@@ -125,13 +179,16 @@ public class OrderDetailActivity extends Activity {
     class GoodAdapter extends BaseAdapter {
 
         private ArrayList<OrderDetail> goodsList;
+        private ImageLoader imageLoader;
 
-        public GoodAdapter(ArrayList<OrderDetail> dataList) {
+        public GoodAdapter(Context context, ArrayList<OrderDetail> dataList) {
             if (dataList == null) {
                 goodsList = new ArrayList<>();
             } else {
                 this.goodsList = dataList;
             }
+            imageLoader = new ImageLoader(Volley.newRequestQueue(context), new BitmapCache());
+
         }
 
         @Override
@@ -155,14 +212,44 @@ public class OrderDetailActivity extends Activity {
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.goods_item, null);
                 TextView desText = (TextView) convertView.findViewById(R.id.goods_des_text);
-                desText.setText(good.describeContents());
+                desText.setText(good.goodsname);
                 TextView priceText = (TextView) convertView.findViewById(R.id.price);
                 priceText.setText("￥" + good.price);
                 TextView numText = (TextView) convertView.findViewById(R.id.num_text);
                 numText.setText("x" + good.buynum);
+                NetworkImageView goodsImg = (NetworkImageView) convertView.findViewById(R.id.goods_img);
+                goodsImg.setImageUrl(good.icon, imageLoader);
+
             }
             return convertView;
         }
+    }
+
+    //由于暂时只有这个一地方有图片下载先做成内部类，如果多个地方使用必须写到外面通用
+    public class BitmapCache implements ImageLoader.ImageCache {
+
+        private LruCache<String, Bitmap> mCache;
+
+        public BitmapCache() {
+            int maxSize = 10 * 1024 * 1024;
+            mCache = new LruCache<String, Bitmap>(maxSize) {
+                @Override
+                protected int sizeOf(String key, Bitmap bitmap) {
+                    return bitmap.getRowBytes() * bitmap.getHeight();
+                }
+            };
+        }
+
+        @Override
+        public Bitmap getBitmap(String url) {
+            return mCache.get(url);
+        }
+
+        @Override
+        public void putBitmap(String url, Bitmap bitmap) {
+            mCache.put(url, bitmap);
+        }
+
     }
 
 }

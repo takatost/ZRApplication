@@ -38,10 +38,12 @@ import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 public class OrderActivity extends Activity {
 
+
     private RecyclerView recyclerView;
     private OrderAdapter mAdapter;
     private OrderObserver orderObserver;
     private ContentResolver resolver;
+    private ActionBar actionBar;
     protected int deliverId;
 
     @Override
@@ -80,10 +82,11 @@ public class OrderActivity extends Activity {
             // TODO Auto-generated method stub
             super.onChange(selfChange);
             Log.e("TAG", "更新订单数据");
-            mAdapter.notifyOrderDataSetChanged(queryOrderData());
+            ArrayList<OrderHistoryDelivery> newdatas = queryOrderData();
+            mAdapter.notifyOrderDataSetChanged(newdatas);
+            actionBar.setTitle(getResources().getString(R.string.newest_order) + "(" + newdatas.size() + ")");
         }
     }
-
 
     private void initView() {
         ArrayList<OrderHistoryDelivery> orderList = queryOrderData();
@@ -92,9 +95,10 @@ public class OrderActivity extends Activity {
         recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDrawable(R.drawable.divider)));
         recyclerView.setItemAnimator(new FadeInLeftAnimator());
         recyclerView.setOnScrollListener(onScrollListener);
-        mAdapter = new OrderAdapter(OrderActivity.this, orderList, true);
+        mAdapter = new OrderAdapter(this, orderList, true);
         mAdapter.setMode(Attributes.Mode.Single);
         recyclerView.setAdapter(mAdapter);
+        actionBar.setTitle(getResources().getString(R.string.newest_order) + "(" + orderList.size() + ")");
     }
 
     private ArrayList<OrderHistoryDelivery> queryOrderData() {
@@ -122,6 +126,8 @@ public class OrderActivity extends Activity {
                         .getColumnIndex(OrderProvider.DELIVER_PRICE));
                 order.comment = c.getString(c
                         .getColumnIndex(OrderProvider.REMARKS));
+
+
                 orderList.add(order);
             } while (c.moveToNext());
             c.close();
@@ -131,7 +137,7 @@ public class OrderActivity extends Activity {
 
     private void configBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            ActionBar actionBar = getActionBar();
+            actionBar = getActionBar();
             if (actionBar != null) {
                 actionBar.setTitle(getResources().getString(R.string.newest_order));
             }

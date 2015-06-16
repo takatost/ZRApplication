@@ -6,9 +6,16 @@ package com.zr.deliver.util;
 public class Config {
 
     /**
-     *配送员登陆模块支持多配送员登陆，但是每次登陆后保存为最新的
-     * 配送员，以配送员id查询配送员最新订单和记录订单
+     * 为了版本的向下兼容性，通过minSdkVersion和targetSdkVersion控制最低安卓sdk版本和目标编译版本
+     * 目标编译版本一般跟市场占有率最高的安卓版本匹配，最后调试应该从最低到最高的版本上整个调试一遍
+     * 通过support保证新的api在低版本的机器上能顺利运行，对于一些support上没支持的比较新的api应该
+     * 使用Build判断，避免程序crash，也没有必要为了很低的安卓版本去做兼容而增加工作量，现在最低使用4.0
+     * 老旧的谷歌开始标注废弃的api应该劲量减少使用比如gallery等，减少程序出bug的风险，最新的metiral标准
+     * 可以学习，由于需求机器安卓版本5.0以上太高，市场低于5.0的版本太高，暂时不应该放进代码里，如果对
+     * metiral标准比较熟悉想获得较好界面效果又是单独开发，可以适量使用新api但是必须使用Build判断（务必），
+     * 如果与同事合作开发就避免使用以减少风险
      */
+
     public static String DELIVER_DATA = "deliver_data";
 
     public static String DELIVER_ID = "deliver_name";

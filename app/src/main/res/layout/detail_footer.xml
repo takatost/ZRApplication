@@ -16,6 +16,7 @@
             android:background="@color/grey" />
 
         <TextView
+            android:id="@+id/total_text"
             android:layout_width="wrap_content"
             tools:text="共1件,合计39元"
             android:textSize="@dimen/order_detail_header_text_size"
@@ -43,7 +44,7 @@
             android:layout_marginRight="@dimen/order_detail_footer_text_magin"
             android:id="@+id/call_bt"
             android:textColor="@color/light_black"
-            tools:text="@string/call"
+            android:text="@string/call"
             android:onClick="doClick"
             android:layout_alignParentRight="true"
             android:background="@drawable/frame_grey_item_selector"

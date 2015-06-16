@@ -3,6 +3,7 @@ package com.zr.deliver.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Date;
 import java.util.List;
 
 public class OrderHistoryDelivery implements Parcelable {
@@ -23,6 +24,8 @@ public class OrderHistoryDelivery implements Parcelable {
 
     public List<OrderDetail> lsc;
 
+    public Date ordertime;
+
 
     @Override
     public int describeContents() {
@@ -39,6 +42,7 @@ public class OrderHistoryDelivery implements Parcelable {
         dest.writeValue(this.dycost);
         dest.writeString(this.comment);
         dest.writeTypedList(lsc);
+        dest.writeLong(ordertime != null ? ordertime.getTime() : -1);
     }
 
     public OrderHistoryDelivery() {
@@ -54,6 +58,8 @@ public class OrderHistoryDelivery implements Parcelable {
         this.comment = in.readString();
         //这里的警告是序列化读取只能读取具体的结构类型，因为服务器给的是List
         this.lsc = in.readArrayList(OrderDetail.class.getClassLoader());
+        long tmpOrdertime = in.readLong();
+        this.ordertime = in.readLong() == -1 ? null : new Date(tmpOrdertime);
     }
 
     public static final Parcelable.Creator<OrderHistoryDelivery> CREATOR = new Parcelable.Creator<OrderHistoryDelivery>() {

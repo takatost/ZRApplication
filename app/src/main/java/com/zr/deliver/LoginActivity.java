@@ -161,7 +161,6 @@ public class LoginActivity extends Activity {
                         if (sr != null && sr.status == null) {
                             editor.putInt(Config.DELIVER_ID, deliverId);
                             editor.putInt(Config.DELIVER_PASS, password);
-                            editor.putInt(Config.DELIVER_STATUS, 0);
                             editor.commit();
                             startActivity(new Intent(LoginActivity.this, OrderActivity.class));
                             finish();

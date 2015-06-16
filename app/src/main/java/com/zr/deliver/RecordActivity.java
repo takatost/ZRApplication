@@ -91,7 +91,9 @@ public class RecordActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             ActionBar actionBar = getActionBar();
             if (actionBar != null) {
-                actionBar.setTitle(getResources().getString(R.string.newest_order));
+                actionBar.setTitle(getResources().getString(R.string.order_record));
+                actionBar.setDisplayHomeAsUpEnabled(true);
+                actionBar.setDisplayShowHomeEnabled(false);
             }
         }
     }

@@ -25,6 +25,7 @@
 
     <string name="today_order">今天订单</string>
     <string name="yestoday_order">昨天订单</string>
+    <string name="order_record">订单记录</string>
 
     <string name="complte_order">确定完成订单吗?</string>
     <string name="complte">是的,确定</string>

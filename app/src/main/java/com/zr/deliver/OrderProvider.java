@@ -45,20 +45,22 @@ public class OrderProvider extends ContentProvider {
     public static final String PHONE = "phone";// 电话
     public static final String TOTAL_PRICE = "phone_food_price";// 总价格
     public static final String DELIVER_PRICE = "deliver_price";// 运费
+    public static final String ORDER_TIME = "order_time";// 下单时间
     public static final String REMARKS = "remarks";// 备注描述
 
     // 商品表
     public static final String GOOD_ID = "good_id";
     public static final String GOOD_NAME = "good_name";
     public static final String GOOD_PRICE = "good_price";
+    public static final String GOOD_ICON = "good_icon";
     public static final String GOOD_NUM = "good_num";
 
 
     public static final String[] ORDER_PROJECTION = new String[]{DELIVER_ID,
-            ORDER_ID, ORDER_STATE, ADRESS, PHONE, TOTAL_PRICE, DELIVER_PRICE, REMARKS};
+            ORDER_ID, ORDER_STATE, ADRESS, PHONE, TOTAL_PRICE, DELIVER_PRICE, ORDER_TIME, REMARKS};
 
     public static final String[] GOOD_PROJECTION = new String[]{ORDER_ID,
-            GOOD_ID, GOOD_NAME, GOOD_PRICE, GOOD_NUM};
+            GOOD_ID, GOOD_NAME, GOOD_PRICE, GOOD_ICON, GOOD_NUM};
 
     private DatabaseHelper mOpenHelper;
 
@@ -199,14 +201,13 @@ public class OrderProvider extends ContentProvider {
             db.execSQL("CREATE TABLE " + ORDER_TABLE + " (" + ORDER_ID
                     + " INTEGER PRIMARY KEY," + DELIVER_ID + " INTEGER,"
                     + ORDER_STATE + " INTEGER," + PHONE + " TEXT," + ADRESS
-                    + " TEXT," + TOTAL_PRICE + " REAL," + DELIVER_PRICE + " REAL,"
+                    + " TEXT," + TOTAL_PRICE + " REAL," + DELIVER_PRICE + " REAL," + ORDER_TIME + " TEXT,"
                     + REMARKS + " TEXT);");
 
 
             db.execSQL("CREATE TABLE " + GOOD_TABLE + " (" + GOOD_ID
-                    + " INTEGER PRIMARY KEY AUTOINCREMENT," + ORDER_ID
-                    + " INTEGER," + GOOD_NAME + " TEXT," + GOOD_PRICE
-                    + " REAL," + GOOD_NUM + " INTEGER);");
+                    + " INTEGER," + ORDER_ID + " INTEGER," + GOOD_NAME + " TEXT," + GOOD_PRICE
+                    + " REAL," + GOOD_ICON + " TEXT," + GOOD_NUM + " INTEGER);");
 
         }
 

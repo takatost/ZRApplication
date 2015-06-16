@@ -58,7 +58,7 @@
                 android:layout_centerVertical="true"
                 android:layout_alignParentLeft="true"
                 android:layout_marginRight="@dimen/order_item_padding"
-                android:src="@drawable/ic_launcher" />
+                android:src="@drawable/icon" />
 
             <TextView
                 tools:text="订单编号:886621"

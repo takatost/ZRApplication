@@ -98,7 +98,12 @@ public class OrderActivity extends Activity {
         mAdapter = new OrderAdapter(this, orderList, true);
         mAdapter.setMode(Attributes.Mode.Single);
         recyclerView.setAdapter(mAdapter);
-        actionBar.setTitle(getResources().getString(R.string.newest_order) + "(" + orderList.size() + ")");
+
+        if (orderList != null) {
+            actionBar.setTitle(getResources().getString(R.string.newest_order) + "(" + orderList.size() + ")");
+        }
+
+
     }
 
     private ArrayList<OrderHistoryDelivery> queryOrderData() {

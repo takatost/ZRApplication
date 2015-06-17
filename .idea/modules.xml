@@ -3,9 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ZRApplication.iml" filepath="$PROJECT_DIR$/ZRApplication.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/deliver_master/deliver_master.iml" filepath="$PROJECT_DIR$/deliver_master/deliver_master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/swiplib/swiplib.iml" filepath="$PROJECT_DIR$/swiplib/swiplib.iml" />
     </modules>
   </component>
 </project>
-

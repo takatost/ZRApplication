@@ -1,22 +1,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MyActivity">
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".MyActivity">
     <item
         android:id="@+id/action_attend"
-        android:orderInCategory="100"
         android:icon="@drawable/attend"
-        android:title="@string/menu_attend" />
+        android:orderInCategory="100"
+        android:title="@string/menu_attend"/>
     <item
         android:id="@+id/action_see"
-        android:orderInCategory="110"
         android:icon="@drawable/see"
-        android:title="@string/menu_see" />
+        android:orderInCategory="110"
+        android:title="@string/menu_see"/>
 
     <item
         android:id="@+id/action_out"
-        android:orderInCategory="120"
         android:icon="@drawable/out"
-        android:title="@string/menu_out" />
+        android:orderInCategory="120"
+        android:title="@string/menu_out"/>
 
     <!--<item-->
     <!--android:id="@+id/action_guide"-->

@@ -1,0 +1,1 @@
+package com.zr.deliver.view;import android.content.Context;/** * Created by Administrator on 2015/7/1. */public interface IDeliverAttendView {    Context getContext();    Double getLatitude();    Double getLongitude();    String getAdress();    void showLoading();    void hideLoading();    void doPolling();    void showFailedError(int errorId);}

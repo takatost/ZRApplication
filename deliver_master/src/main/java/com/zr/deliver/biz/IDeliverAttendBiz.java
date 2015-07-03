@@ -1,0 +1,1 @@
+package com.zr.deliver.biz;/** * Created by Administrator on 2015/7/1. */public interface IDeliverAttendBiz {    public void attend(Double latitude, Double longitude, String currentAddress, OnRequestListener loginListener);    public int getDefaultState();    public void clear();}

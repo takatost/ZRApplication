@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?><!-- A RecyclerView with some commonly used attributes -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/grey">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+    >
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/order_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="vertical" />
+        android:background="@color/white"
+        android:scrollbars="vertical"/>
 
     <TextView
         android:id="@+id/hint_text"
@@ -20,6 +21,6 @@
         android:gravity="center"
         android:text="@string/order_hint"
         android:textSize="@dimen/order_item_text_size"
-        android:visibility="invisible" />
+        android:visibility="invisible"/>
 
 </RelativeLayout>

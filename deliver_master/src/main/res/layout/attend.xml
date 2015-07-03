@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
     <com.amap.api.maps.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"
-        android:layout_above="@+id/button"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_above="@+id/button"/>
 
     <Button
+        android:id="@+id/attend_bt"
         android:layout_width="match_parent"
         android:layout_height="@dimen/attend_bt_height"
-        android:id="@+id/button"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="@dimen/attend_bt_magin"
+        android:background="@drawable/login_bt_selector"
         android:text="@string/sign_in"
         android:textColor="@color/white"
-        android:layout_margin="@dimen/attend_bt_magin"
-        android:textSize="@dimen/attend_bt_size"
-        android:layout_alignParentBottom="true"
-        android:background="@drawable/login_bt_selector"
-        android:layout_centerHorizontal="true" />
+        android:textSize="@dimen/attend_bt_size"/>
 
 </RelativeLayout>

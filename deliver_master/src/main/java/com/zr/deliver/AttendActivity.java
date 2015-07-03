@@ -1,12 +1,11 @@
 package com.zr.deliver;
 
 import android.app.ActionBar;
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -18,31 +17,16 @@ import com.amap.api.location.LocationProviderProxy;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
-import com.android.volley.toolbox.Volley;
-import com.google.gson.Gson;
-import com.zr.deliver.frame.CustomActivity;
-import com.zr.deliver.model.DymanRecord;
-import com.zr.deliver.model.StatefulResponse;
+import com.zr.deliver.custom.CustomActivity;
+import com.zr.deliver.presenter.AttendPresenter;
 import com.zr.deliver.util.Config;
-import com.zr.deliver.util.GsonTools;
 import com.zr.deliver.util.PollingUtils;
-import com.zr.deliver.util.Util;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.zr.deliver.view.IDeliverAttendView;
 
 /**
  * Created by xia on 2015/5/5.
  */
-public class AttendActivity extends CustomActivity implements LocationSource, AMapLocationListener {
+public class AttendActivity extends CustomActivity implements LocationSource, AMapLocationListener, IDeliverAttendView {
 
     private AMap aMap;
     private MapView mapView;
@@ -51,13 +35,13 @@ public class AttendActivity extends CustomActivity implements LocationSource, AM
     private LocationManagerProxy mAMapLocationManager;
     private String currentAddress;
     private double latitude, longitude;
-    int status;
+    private AttendPresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.attend);
-        mQueue = Volley.newRequestQueue(this);
+        presenter = new AttendPresenter(this);
         mapView = (MapView) findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         init();
@@ -67,89 +51,17 @@ public class AttendActivity extends CustomActivity implements LocationSource, AM
 
     @Override
     public void initView() {
-        attendBt = (Button) findViewById(R.id.button);
-        status = mPreferences.getInt(Config.DELIVER_STATUS, -1);
-        if (status == 0)
-            attendBt.setText(getString(R.string.sign_in));
-        else if (status == 1)
-            attendBt.setText(getString(R.string.sign_out));
-
-        attendBt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendAttendQuest();
-            }
-        });
+        attendBt = (Button) findViewById(R.id.attend_bt);
+        int state = presenter.getDefaultState();
+        attendBt.setText(state == 0 ? getString(R.string.sign_in) : getString(R.string.sign_out));
+        attendBt.setOnClickListener(this);
     }
 
-    public void sendAttendQuest() {
-
-        DymanRecord dr = new DymanRecord();
-        dr.deliverymanId = mPreferences.getInt(Config.DELIVER_ID, -1);
-        dr.deviceId = Util.getDeviceId(this);
-        dr.latitude = latitude;
-        dr.longitude = longitude;
-        dr.address = currentAddress;
-        Gson gson = GsonTools.getGson();
-        String jsonStr = gson.toJson(dr);
-        JSONObject object = null;
-        try {
-            object = new JSONObject(jsonStr);
-        } catch (JSONException e) {
-            e.printStackTrace();
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.attend_bt) {
+            presenter.attend();
         }
-        Log.e("TAG", jsonStr);
-        JsonRequest<JSONObject> jsonRequest = new JsonObjectRequest(Request.Method.POST,
-                status == 0 ? Config.DELIVER_SIGNIN_URL : Config.DELIVER_SIGNOUT_URL, object,
-                new Response.Listener<JSONObject>() {
-                    public void onResponse(JSONObject response) {
-                        Log.d("TAG", "response -> " + response.toString());
-                        StatefulResponse sr = GsonTools.getGson().fromJson(
-                                response.toString(), StatefulResponse.class);
-                        SharedPreferences.Editor editor = mPreferences.edit();
-                        if (sr != null && sr.status == null) {
-                            if (status == 0) {
-                                editor.putInt(Config.DELIVER_STATUS, 1);
-                                editor.commit();
-                                //启动轮询
-                                PollingUtils.startPollingService(
-                                        AttendActivity.this,
-                                        15 * 1000,
-                                        AlarmPollService.class,
-                                        Config.POLLING_ACTION);
-
-                                startService(new Intent(AttendActivity.this, AlarmPollService.class));
-                            } else {
-                                editor.putInt(Config.DELIVER_STATUS, 0);
-                                editor.commit();
-                                PollingUtils.stopPollingService(AttendActivity.this,
-                                        AlarmPollService.class,
-                                        Config.POLLING_ACTION);
-                                //这一步有必要，service只有stop和unbind才能彻底关闭，上面只是关闭alarm服务
-                                stopService(new Intent(AttendActivity.this, AlarmPollService.class));
-                            }
-                            finish();
-                        } else {
-                            //签到签出失败
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("TAG", error.getMessage(), error);
-                //签到签出失败
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                HashMap<String, String> headers = new HashMap<>();
-                headers.put("Accept", "application/json");
-                headers.put("Content-Type", "application/json; charset=UTF-8");
-                return headers;
-            }
-        };
-        mQueue.add(jsonRequest);
     }
 
 
@@ -216,7 +128,7 @@ public class AttendActivity extends CustomActivity implements LocationSource, AM
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
-        mQueue.stop();
+        presenter.clear();
     }
 
     @Override
@@ -279,5 +191,61 @@ public class AttendActivity extends CustomActivity implements LocationSource, AM
             mAMapLocationManager.destroy();
         }
         mAMapLocationManager = null;
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
+    }
+
+    @Override
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    @Override
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    @Override
+    public String getAdress() {
+        return currentAddress;
+    }
+
+    @Override
+    public void showLoading() {
+        loadingDialog.show();
+
+    }
+
+    @Override
+    public void hideLoading() {
+        loadingDialog.dismiss();
+    }
+
+    @Override
+    public void doPolling() {
+        int state = presenter.getDefaultState();
+        if (state == 0) {
+            PollingUtils.startPollingService(
+                    AttendActivity.this,
+                    15 * 1000,
+                    AlarmPollService.class,
+                    Config.POLLING_ACTION);
+        } else {
+            PollingUtils.stopPollingService(AttendActivity.this,
+                    AlarmPollService.class,
+                    Config.POLLING_ACTION);
+            //这一步有必要，service只有stop和unbind才能彻底关闭，上面只是关闭alarm服务
+            stopService(new Intent(AttendActivity.this, AlarmPollService.class));
+        }
+        finish();
+    }
+
+    @Override
+    public void showFailedError(int errorId) {
+        //处理登陆失败的异常
+
     }
 }

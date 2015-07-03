@@ -21,12 +21,15 @@
     <string name="notes">您可以使用不同的配送员账号登陆</string>
     <string name="order_hint">您暂时没有新订单送达~</string>
     <string name="record_hint">您还没有订单记录~</string>
-
+    <string name="loading_hint">请稍等...</string>
+    <string name="error1">账号密码不能为空！</string>
+    <string name="error2">请检查您的账号密码！</string>
+    <string name="error3">请检查网络！</string>
+    <string name="error4">登陆失败！</string>
 
     //订单页面
 
-    <string name="today_order">今天订单</string>
-    <string name="yestoday_order">昨天订单</string>
+    <string name="clear_order">全部清除</string>
     <string name="order_record">订单记录</string>
 
     <string name="complte_order">确定完成订单吗?</string>

@@ -1,16 +1,11 @@
 package com.zr.deliver;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.util.LruCache;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,12 +14,13 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
-import com.android.volley.toolbox.Volley;
+import com.zr.deliver.custom.CustomActivity;
 import com.zr.deliver.model.OrderDetail;
 import com.zr.deliver.model.OrderHistoryDelivery;
+import com.zr.deliver.presenter.OrderDetailPresenter;
 import com.zr.deliver.util.Config;
+import com.zr.deliver.view.IOrderDetailView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,22 +28,24 @@ import java.util.List;
 /**
  * Created by xia on 2015/5/7.
  */
-public class OrderDetailActivity extends Activity {
+public class OrderDetailActivity extends CustomActivity implements IOrderDetailView {
 
     private TextView idText, statusText;
     private ListView goodListView;
     private LayoutInflater inflater;
     private OrderHistoryDelivery order;
+    private OrderDetailPresenter presenter;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.order_detail);
+        presenter = new OrderDetailPresenter(this);
         order = getIntent().getExtras().getParcelable(Config.ORDER_DETAIL_KEY);
         inflater = LayoutInflater.from(this);
         configBar();
-        initView();
+        presenter.displayData();
     }
 
 
@@ -68,35 +66,6 @@ public class OrderDetailActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void initView() {
-
-        if (order == null) return;
-        ArrayList<OrderDetail> goodList = queryGoodData();
-        if (goodList == null || goodList.size() == 0) return;
-        goodListView = (ListView) findViewById(R.id.good_listview);
-        View headView = inflater.inflate(R.layout.detail_header, null);
-        View footerView = inflater.inflate(R.layout.detail_footer, null);
-        TextView totalText = (TextView) footerView.findViewById(R.id.total_text);
-
-        StringBuffer buffer = new StringBuffer();
-        String totalPrice = getTotalPrice(goodList);
-        String totalNum = getTotalNum(goodList);
-        buffer.append("共").append(totalNum).append("件").append(",合计").append("￥").append(totalPrice);
-        totalText.setText(buffer.toString());
-
-
-        GoodAdapter adapter = new GoodAdapter(this, goodList);
-        goodListView.addHeaderView(headView);
-        goodListView.addFooterView(footerView);
-        goodListView.setAdapter(adapter);
-
-        idText = (TextView) findViewById(R.id.id_text);
-        idText.setText(getString(R.string.order_number) + order.id);
-        statusText = (TextView) findViewById(R.id.status_text);
-        statusText.setText(order.status == 2 ? getString(R.string.order_sending) : "");
-
-    }
-
     private void configBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             ActionBar actionBar = getActionBar();
@@ -109,86 +78,76 @@ public class OrderDetailActivity extends Activity {
     }
 
 
-    private ArrayList<OrderDetail> queryGoodData() {
-
-        Log.e("TAG", "当前订单id=" + order.id);
-        Cursor c = getContentResolver().query(OrderProvider.GOOD_URI,
-                OrderProvider.GOOD_PROJECTION, "order_id=?",
-                new String[]{order.id + ""}, null);
-        ArrayList<OrderDetail> goodList = null;
-        if (c != null && c.getCount() > 0) {
-            goodList = new ArrayList<>();
-            c.moveToFirst();
-            do {
-                OrderDetail goods = new OrderDetail();
-                goods.goodsid = c.getInt(c
-                        .getColumnIndex(OrderProvider.GOOD_ID));
-                goods.price = c.getFloat(c
-                        .getColumnIndex(OrderProvider.GOOD_PRICE));
-                goods.buynum = c.getInt(c
-                        .getColumnIndex(OrderProvider.GOOD_NUM));
-                goods.icon = c.getString(c
-                        .getColumnIndex(OrderProvider.GOOD_ICON));
-
-                Log.e("TAG", "图片地址" + goods.icon);
-
-                goods.goodsname = c.getString(c
-                        .getColumnIndex(OrderProvider.GOOD_NAME));
-                goodList.add(goods);
-            } while (c.moveToNext());
-            c.close();
-        }
-        return goodList;
-
-    }
-
-
-    private String getTotalPrice(List<OrderDetail> lsc) {
-        // TODO Auto-generated method stub
-        if (lsc == null || lsc.size() == 0) {
-            return 0 + "";
-        } else {
-            float totalprice = 0;
-            for (OrderDetail order : lsc) {
-                totalprice += order.price * order.buynum;
-            }
-            return totalprice + "";
-        }
-
-    }
-
-    private String getTotalNum(List<OrderDetail> lsc) {
-        // TODO Auto-generated method stub
-        if (lsc == null || lsc.size() == 0) {
-            return 0 + "";
-        } else {
-            int totalNum = 0;
-            for (OrderDetail order : lsc) {
-                totalNum += order.buynum;
-            }
-            return totalNum + "";
-        }
-
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
     }
 
+    @Override
+    public Context getContext() {
+        return this;
+    }
+
+    @Override
+    public void showLoading() {
+        loadingDialog.show();
+    }
+
+    @Override
+    public void hideLoading() {
+        loadingDialog.dismiss();
+    }
+
+    @Override
+    public void showFailedError(int errorId) {
+
+    }
+
+    @Override
+    public void bindData(List<OrderDetail> goodsData) {
+
+        if (order == null) return;
+        if (goodsData == null || goodsData.size() == 0) return;
+        goodListView = (ListView) findViewById(R.id.good_listview);
+        View headView = inflater.inflate(R.layout.detail_header, null);
+        View footerView = inflater.inflate(R.layout.detail_footer, null);
+        TextView totalText = (TextView) footerView.findViewById(R.id.total_text);
+
+        StringBuffer buffer = new StringBuffer();
+        String totalPrice = presenter.getTotalPrice(goodsData);
+        String totalNum = presenter.getTotalNum(goodsData);
+        buffer.append("共").append(totalNum).append("件").append(",合计").append("￥").append(totalPrice);
+        totalText.setText(buffer.toString());
+
+
+        GoodAdapter adapter = new GoodAdapter(this, goodsData);
+        goodListView.addHeaderView(headView);
+        goodListView.addFooterView(footerView);
+        goodListView.setAdapter(adapter);
+
+        idText = (TextView) findViewById(R.id.id_text);
+        idText.setText(getString(R.string.order_number) + order.id);
+        statusText = (TextView) findViewById(R.id.status_text);
+        statusText.setText(order.status == 2 ? getString(R.string.order_sending) : "");
+
+    }
+
+    @Override
+    public OrderHistoryDelivery getCurrentOrder() {
+        return order;
+    }
+
+
     class GoodAdapter extends BaseAdapter {
 
-        private ArrayList<OrderDetail> goodsList;
-        private ImageLoader imageLoader;
+        private List<OrderDetail> goodsList;
 
-        public GoodAdapter(Context context, ArrayList<OrderDetail> dataList) {
+        public GoodAdapter(Context context, List<OrderDetail> dataList) {
             if (dataList == null) {
                 goodsList = new ArrayList<>();
             } else {
                 this.goodsList = dataList;
             }
-            imageLoader = new ImageLoader(Volley.newRequestQueue(context), new BitmapCache());
-
         }
 
         @Override
@@ -218,38 +177,10 @@ public class OrderDetailActivity extends Activity {
                 TextView numText = (TextView) convertView.findViewById(R.id.num_text);
                 numText.setText("x" + good.buynum);
                 NetworkImageView goodsImg = (NetworkImageView) convertView.findViewById(R.id.goods_img);
-                goodsImg.setImageUrl(good.icon, imageLoader);
-
+                goodsImg.setImageUrl(good.icon, presenter.getImageLoder());
             }
             return convertView;
         }
-    }
-
-    //由于暂时只有这个一地方有图片下载先做成内部类，如果多个地方使用必须写到外面通用
-    public class BitmapCache implements ImageLoader.ImageCache {
-
-        private LruCache<String, Bitmap> mCache;
-
-        public BitmapCache() {
-            int maxSize = 10 * 1024 * 1024;
-            mCache = new LruCache<String, Bitmap>(maxSize) {
-                @Override
-                protected int sizeOf(String key, Bitmap bitmap) {
-                    return bitmap.getRowBytes() * bitmap.getHeight();
-                }
-            };
-        }
-
-        @Override
-        public Bitmap getBitmap(String url) {
-            return mCache.get(url);
-        }
-
-        @Override
-        public void putBitmap(String url, Bitmap bitmap) {
-            mCache.put(url, bitmap);
-        }
-
     }
 
 }

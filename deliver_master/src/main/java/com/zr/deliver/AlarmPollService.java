@@ -195,7 +195,7 @@ public class AlarmPollService extends Service implements
         // TODO Auto-generated method stub
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-                this).setSmallIcon(R.drawable.icon)//设置图标
+                this).setSmallIcon(R.drawable.ic_launcher)//设置图标
                 .setContentTitle(getString(R.string.noti_order_hint))//设置标题
                 .setContentText(getString(R.string.noti_opent_hint));//设置内容
         //设置PendingIntent，当用户点击通知跳转到另一个界面，当退出该界面，直接回到HOME*/

@@ -2,12 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/action_today"
+        android:id="@+id/action_clear"
         android:orderInCategory="100"
-        android:title="@string/today_order" />
-    <item
-        android:id="@+id/action_yestoday"
-        android:orderInCategory="110"
-        android:title="@string/yestoday_order" />
+        android:title="@string/clear_order" />
 
 </menu>
